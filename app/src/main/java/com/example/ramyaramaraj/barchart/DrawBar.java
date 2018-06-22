@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -45,35 +46,59 @@ class DrawBar extends View {
     public void onDraw(Canvas canvas) {
         if (cvalues != null) {
             //.........................Canvas Attributes..................
-            int length= canvas.getHeight();
-            int breadth=canvas.getWidth();
+            int length = canvas.getHeight();
+            int breadth = canvas.getWidth();
+
+
+            int len_dec = length / 10;
+            int bre_dec = breadth / 10;
+            int dec;
+            if(len_dec>bre_dec)
+            {
+                dec=len_dec;
+            }
+            else if(bre_dec>len_dec)
+            {
+                dec=bre_dec;
+            }
+            else
+            {
+                dec=bre_dec;
+            }
+            Log.i("String dec", String.valueOf(dec));
             int size = getResources().getDimensionPixelSize(R.dimen.myFontSize);
             axis.setTextSize(size);
+         //   paint.setStyle(Paint.Style.STROKE);
+
+           // canvas.drawRect(dec, dec+(dec/4), breadth-dec, length-dec,paint);
             //..................Colours................
-            ArrayList colours=new ArrayList();
+           ArrayList colours=new ArrayList();
             colours.addAll(cvalues.getColours());
             String BarWidth=cvalues.getBarWidth();
-
-            //  paint.setColor(Integer.parseInt((String) colours.get(0)));
             //..................Labels................
             ArrayList Labels=new ArrayList();
             Labels.addAll(cvalues.getLabel());
-            size = getResources().getDimensionPixelSize(R.dimen.myFontSize);
-            point.setTextSize(size);
-            labels.setTextSize(size);
-            canvas.drawText((String) Labels.get(0), breadth/2-150, 30, point);
-            canvas.drawText((String) Labels.get(1), breadth/2-100, 70, point);
+            point.setTextAlign(Paint.Align.CENTER);
+            //size=getWidth()/30;
+            int size1=dec/4;
+            point.setTextSize(size1);
+            labels.setTextSize(size1);
+            canvas.drawText((String) Labels.get(0), breadth/2, size1, point);
+            //int size2=dec/6;
+         //   point.setTextSize(size);
+          //  canvas.drawText((String) Labels.get(1), breadth/2, size1+size2, point);
             Path path = new Path();
-            path.moveTo(length-50,length/2);
+            path.moveTo(length-(2*size),length/2);
             path.lineTo(length-50,length/2-100);
-            canvas.drawPath(path, point);
-            canvas.drawTextOnPath((String) Labels.get(2),path,0,0,point);
+           // canvas.drawPath(path, point);
+           // canvas.drawTextOnPath((String) Labels.get(2),path,0,0,point);
             //...............Rectangle Creation..............
             paint.setColor(Color.BLACK);
             paint.setStyle(Paint.Style.STROKE);
             int length_dec=length/20;
             int breadth_dec=breadth/20;
-            canvas.drawRect(100, 100, breadth-100, length-100,paint);
+
+            canvas.drawRect(dec, dec, breadth-dec, length-dec,paint);
             //.............Xarray and Yarray Creation................
             ArrayList Xaxis=new ArrayList();
             Xaxis.addAll(cvalues.getXaxis());
@@ -81,18 +106,20 @@ class DrawBar extends View {
             Yaxis.addAll(cvalues.getYaxis());
             //.............XFormat Checking.............
             String xcheck=(String) Xaxis.get(0);
+            float q=paint.measureText(String.valueOf(xcheck));
+            Log.i("St", String.valueOf(q));
             int check=xFormat(xcheck);
             int xc=0;
             HashMap xplot=new HashMap();
             switch (check)
             {
                 case 0:
-                    xplot=xString(Xaxis,canvas,length,breadth);
+                    xplot=xString(Xaxis,canvas,length,breadth,dec);
                     xc=1;
                     break;
                 default:
                     Log.i("scale","Integer");
-                    xplot=xNumber(Xaxis,canvas,length,breadth);
+                    xplot=xNumber(Xaxis,canvas,length,breadth,dec);
                     xc=2;
                     break;
             }
@@ -104,22 +131,22 @@ class DrawBar extends View {
             switch (checky)
             {
                 case 0:
-                    yplot=yString(Yaxis,canvas,length,breadth);
+                    yplot=yString(Yaxis,canvas,length,breadth,dec);
                     yc=1;
                     break;
                 default:
                     Log.i("scale","y...Integer");
-                    yplot= yNumber(Yaxis,canvas,length,breadth);
+                    yplot= yNumber(Yaxis,canvas,length,breadth,dec);
                     yc=2;
                     break;
             }
             //.........PLOTTING..............
-            plot(Xaxis,Yaxis,xplot,yplot,canvas,xc,yc,BarWidth,colours,length);
+            plot(Xaxis,Yaxis,xplot,yplot,canvas,xc,yc,BarWidth,colours,length,dec);
         } else {
             return;
         }
     }
-    private void plot(ArrayList xaxis, ArrayList yaxis,  HashMap xplot, HashMap yplot, Canvas canvas, int xc, int yc,String Barwidth,ArrayList Colours,int length) {
+    private void plot(ArrayList xaxis, ArrayList yaxis,  HashMap xplot, HashMap yplot, Canvas canvas, int xc, int yc,String Barwidth,ArrayList Colours,int length,int dec) {
         int s=xaxis.size();
         int width=Integer.parseInt(Barwidth)/2;
         if((xc==1)&&(yc==1)) { //X and Y String
@@ -130,7 +157,7 @@ class DrawBar extends View {
                 Object ycc =  yplot.get(val2);
                // canvas.drawCircle((int) xcc, (int) ycc, 5, coordinate);
                 Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-100,Bar);
+                canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-dec,Bar);
 
             }
         }
@@ -146,7 +173,7 @@ class DrawBar extends View {
                     Object xcc =  xplot.get(val1);
                    // canvas.drawCircle((int) xcc, (int) ycc, 5, coordinate);
                     Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                    canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-100,Bar);
+                    canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-dec,Bar);
 
                 }
                 else {
@@ -188,7 +215,7 @@ class DrawBar extends View {
                     Object xcc_f =  xplot.get(val1);
                  //   canvas.drawCircle((int)xcc_f,(int) val, 5, coordinate);
                     Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                    canvas.drawRect((int) xcc_f-width,(int)val,(int) xcc_f+width,length-100,Bar);
+                    canvas.drawRect((int) xcc_f-width,(int)val,(int) xcc_f+width,length-dec,Bar);
 
                 }
             }
@@ -206,7 +233,7 @@ class DrawBar extends View {
                     Object ycc =  yplot.get(val2);
                     //canvas.drawCircle((int) xcc, (int) ycc, 5, coordinate);
                     Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                    canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-100,Bar);
+                    canvas.drawRect((int) xcc-width,(int)ycc,(int) xcc+width,length-dec,Bar);
 
                 }
                 else {
@@ -247,7 +274,7 @@ class DrawBar extends View {
                     Object ycc_f =  yplot.get(val2);
                     //canvas.drawCircle((int)val,(int) ycc_f, 5, coordinate);
                     Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                    canvas.drawRect((int) val-width,(int)ycc_f,(int) val+width,length-100,Bar);
+                    canvas.drawRect((int) val-width,(int)ycc_f,(int) val+width,length-dec,Bar);
                 }
             }
         }
@@ -359,12 +386,12 @@ class DrawBar extends View {
 
                 }
                 Bar.setColor(Color.parseColor((String) Colours.get(j)));
-                canvas.drawRect((int) xcc_f-width,(int)ycc_f,(int) xcc_f+width,length-100,Bar);
+                canvas.drawRect((int) xcc_f-width,(int)ycc_f,(int) xcc_f+width,length-dec,Bar);
 
             }
         }
     }
-    private HashMap yNumber(ArrayList Yaxis, Canvas canvas, int length, int breadth) {
+    private HashMap yNumber(ArrayList Yaxis, Canvas canvas, int length, int breadth,int dec) {
         //................Yarray Creation.........
         int yaxis[]=new int[Yaxis.size()];
         for(int i=0;i<Yaxis.size();i++) {
@@ -414,20 +441,28 @@ class DrawBar extends View {
         Log.i("yyscale", String.valueOf(yscale));
         int yscale_count=yscale.size();
         //...........Horizontal Lines.................
-        int hxs = 100, hxst =breadth-100, hys =length-100, hyst =length-100;
-        int ysplit=((length-100)-100)/yscale_count;
-        for (int i = 0; i <=yscale_count; i++) {
+        int hxs = dec, hxst =breadth-dec, hys =length-dec, hyst =length-dec;
+        int ysplit=((length-dec)-dec)/yscale_count;
+        for (int i = 0; i <yscale_count; i++) {
             canvas.drawLine(hxs, hys, hxst, hyst,plot);
             hys = hys -ysplit;
             hyst = hyst - ysplit;
         }
         //.............ypoint fixing and Yscale Printing................
-        int xstart=100;  int ystart=length-100-ysplit;
+        int xstart=dec;  int ystart=length-dec-ysplit;
         HashMap ypixel = new HashMap();
         for(int i=0;i<yscale_count;i++) {
             int count;
             canvas.drawCircle(xstart, ystart, 5, paint);
-            canvas.drawText(String.valueOf((Integer) yscale.get(i)), xstart-60, ystart, axis);
+            //...............Resizing the txt...............//
+            axis.setTextSize(130);
+            while(axis.measureText(String.valueOf(yscale.get(i)))>dec){
+                axis.setTextSize(axis.getTextSize()-1);
+            }
+            int Resize= (int) (axis.getTextSize()/2);
+            axis.setTextSize(Resize);
+            canvas.drawText(String.valueOf((int) yscale.get(i)), xstart-2*(axis.getTextSize()), ystart+5,axis);
+            //..................................................//
             ypixel.put(Float.parseFloat(String.valueOf(yscale.get(i))), ystart);
             int plot=(Integer) yscale.get(i);
             int temp_inc=ysplit/(yinc);
@@ -453,47 +488,47 @@ class DrawBar extends View {
         Log.i("Xsize", String.valueOf(ypixel));
         return ypixel;
     }
-    private HashMap yString(ArrayList Yaxis, Canvas canvas, int length, int breadth) {
+    private HashMap yString(ArrayList Yaxis, Canvas canvas, int length, int breadth,int dec) {
         //...........Horizontal Lines.................
-        int hxs = 100, hxst =breadth-100, hys =length-100, hyst =length-100;
-        int ysplit=((length-100)-100)/Yaxis.size();
-        for (int i = 0; i <=Yaxis.size(); i++) {
+        int hxs = dec, hxst =breadth-dec, hys =length-dec, hyst =length-dec;
+        int ysplit=((length-dec)-dec)/Yaxis.size();
+        for (int i = 0; i <Yaxis.size(); i++) {
             canvas.drawLine(hxs, hys, hxst, hyst,plot);
             hys = hys -ysplit;
             hyst = hyst - ysplit;
         }
         //.............Ypoint fixing and Yscale Printing...............
-        int xstart=100;  int ystart=length-100-ysplit;
+        int xstart=dec;  int ystart=length-dec-ysplit;
         HashMap ypixel = new HashMap();
         for(int i=0;i<Yaxis.size();i++) {
             canvas.drawCircle(xstart, ystart, 5, paint);
-            canvas.drawText(String.valueOf(Yaxis.get(i)), xstart-90, ystart, axis);
+            canvas.drawText(String.valueOf(Yaxis.get(i)), xstart-(dec-10), ystart+5, axis);
             ypixel.put(Yaxis.get(i), ystart);
             ystart=ystart-ysplit;
         }
         return ypixel;
     }
-    private HashMap xString(ArrayList Xaxis,Canvas canvas,int length,int breadth) {
+    private HashMap xString(ArrayList Xaxis,Canvas canvas,int length,int breadth,int dec) {
         //...........Vertical Lines...............
-        int vxs = 100, vxst =100, vys = 100, vyst = length-100;
-        int xsplit=((breadth-100)-100)/Xaxis.size();
-        for (int i = 0; i <=Xaxis.size(); i++) {
+        int vxs = dec, vxst =dec, vys = dec, vyst = length-dec;
+        int xsplit=((breadth-dec)-dec)/Xaxis.size();
+        for (int i = 0; i <Xaxis.size(); i++) {
             canvas.drawLine(vxs, vys, vxst, vyst, plot);
             vxs = vxs + xsplit;
             vxst = vxst + xsplit;
         }
         //.............Xpoint fixing and Xscale Printing...............
-        int xstart=100+xsplit;int ystart=length-100;
+        int xstart=dec+xsplit;int ystart=length-dec;
         HashMap xpixel = new HashMap();
         for(int i=0;i<Xaxis.size();i++) {
             canvas.drawCircle(xstart, ystart, 5, paint);
-            canvas.drawText( String.valueOf( Xaxis.get(i)), xstart, ystart+50,axis);
+            canvas.drawText( String.valueOf( Xaxis.get(i)), xstart, ystart+20,axis);
             xpixel.put( Xaxis.get(i), xstart);
             xstart+=xsplit;
         }
         return  xpixel;
     }
-    private HashMap xNumber(ArrayList Xaxis,Canvas canvas,int length,int breadth) {
+    private HashMap xNumber(ArrayList Xaxis,Canvas canvas,int length,int breadth,int dec) {
         //.............Xarray Creation................
         int xaxisvalues[]=new int[Xaxis.size()];
         for(int i=0;i<Xaxis.size();i++) {
@@ -542,23 +577,32 @@ class DrawBar extends View {
         Log.i("scale", String.valueOf(xscale));
         int xscale_count=xscale.size();
         //...........Vertical Lines...............
-        int vxs = 100, vxst =100, vys = 100, vyst = length-100;
-        int xsplit=((breadth-100)-100)/xscale_count;
+        int vxs = dec, vxst =dec, vys = dec, vyst = length-dec;
+        int xsplit=((breadth-dec)-dec)/xscale_count;
         Log.i("scale", String.valueOf(xsplit));
-        for (int i = 0; i <=xscale_count; i++) {
+        for (int i = 0; i <xscale_count; i++) {
             canvas.drawLine(vxs, vys, vxst, vyst, plot);
             vxs = vxs + xsplit;
             vxst = vxst + xsplit;
         }
         //...........xpoint fixing and Xscale Printing...................
-        int xstart=100+xsplit;int ystart=length-100;
+        int xstart=dec+xsplit;int ystart=length-dec;
         HashMap xpixel = new HashMap();
         int temp_inc=(int) (xsplit)/(xinc);
         Log.i("tempinc", String.valueOf(temp_inc));
         for(int i=0;i<xscale_count;i++) {
             int count;
             canvas.drawCircle(xstart, ystart, 5, paint);
-            canvas.drawText(String.valueOf((int) xscale.get(i)), xstart, ystart+50,axis);
+
+            //...............Resizing the txt...............//
+            axis.setTextSize(130);
+            while(axis.measureText(String.valueOf(xscale.get(i)))>xsplit){
+                axis.setTextSize(axis.getTextSize()-1);
+            }
+            int Resize= (int) (axis.getTextSize()/2);
+            axis.setTextSize(Resize);
+            canvas.drawText(String.valueOf((int) xscale.get(i)), xstart-(axis.getTextSize()), ystart+20,axis);
+            //.....................................................//
             xpixel.put(Float.parseFloat(String.valueOf(xscale.get(i))), xstart);
             int plot=( int) xscale.get(i);
             if(temp_inc!=0) {
